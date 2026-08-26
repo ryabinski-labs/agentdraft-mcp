@@ -1,0 +1,40 @@
+[project]
+name = "agentdraft-mcp"
+version = "0.1.1"
+description = "MCP server for AgentDraft — expose inbox, conflict-free calendar, and audit tools to MCP-aware AI clients"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "AgentDraft Labs", email = "hello@agentdraft.io" }]
+keywords = ["mcp", "model-context-protocol", "calendar", "scheduling", "ai-agents", "agentdraft"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Office/Business :: Scheduling",
+]
+dependencies = [
+    "mcp>=1.0",
+    "agentdraft>=0.1.0",
+]
+
+[project.scripts]
+agentdraft-mcp = "agentdraft_mcp.__main__:main"
+
+[project.urls]
+Homepage = "https://agentdraft.io"
+Documentation = "https://agentdraft.io/docs"
+Repository = "https://github.com/ryabinski-labs/agentdraft-mcp"
+Issues = "https://github.com/ryabinski-labs/agentdraft-mcp/issues"
+Changelog = "https://github.com/ryabinski-labs/agentdraft-mcp/blob/main/CHANGELOG.md"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["agentdraft_mcp*"]

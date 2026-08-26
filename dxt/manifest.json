@@ -1,0 +1,99 @@
+{
+  "manifest_version": "0.3",
+  "name": "agentdraft",
+  "display_name": "AgentDraft \u2014 multi-agent calendar coordination",
+  "version": "0.1.1",
+  "description": "Race-free booking against a shared calendar for AI agents. Adds the AgentDraft coordination layer to Claude Desktop so this MCP host won't double-book the same slot when other agents are writing to the same calendar.",
+  "long_description": "AgentDraft is the coordination layer for AI scheduling agents. When two or more agents (a sales bot, a recruiter assistant, a personal scheduling agent) all write to the same calendar, AgentDraft is the API that picks exactly one winner per slot deterministically \u2014 with a tamper-evident audit log for every commit and a priority ranking so the most important agent always wins.\n\nThis extension exposes AgentDraft as MCP tools: get_availability, create_hold, release_hold, commit_booking, cancel_booking, and whoami. A losing booking attempt returns a structured `outranked` payload (winning_agent_id, winning_agent_priority) so the agent can branch on it and propose an alternate slot rather than retrying.\n\nGet an `avs_live_\u2026` API key at https://app.agentdraft.io after sign-up.",
+  "author": {
+    "name": "AgentDraft Labs",
+    "email": "hello@agentdraft.io",
+    "url": "https://agentdraft.io"
+  },
+  "homepage": "https://agentdraft.io",
+  "documentation": "https://agentdraft.io/docs",
+  "support": "https://github.com/ryabinski-labs/agentdraft-mcp/issues",
+  "icon": "icon.png",
+  "license": "MIT",
+  "keywords": [
+    "calendar",
+    "scheduling",
+    "ai-agents",
+    "coordination",
+    "multi-agent",
+    "agentdraft"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ryabinski-labs/agentdraft-mcp"
+  },
+  "server": {
+    "type": "python",
+    "entry_point": "server/main.py",
+    "mcp_config": {
+      "command": "python",
+      "args": [
+        "${__dirname}/server/main.py"
+      ],
+      "env": {
+        "AGENTDRAFT_API_KEY": "${user_config.api_key}",
+        "AGENTDRAFT_BASE_URL": "${user_config.base_url}",
+        "PYTHONPATH": "${__dirname}/server/lib"
+      }
+    }
+  },
+  "tools": [
+    {
+      "name": "whoami",
+      "description": "Confirm the API key is valid and return the calling agent's identity, priority, and scopes."
+    },
+    {
+      "name": "get_availability",
+      "description": "List slots open to the calling agent within a time range."
+    },
+    {
+      "name": "create_hold",
+      "description": "Reserve a slot tentatively (30s TTL). Returns an outranked payload if a higher-priority agent already holds it."
+    },
+    {
+      "name": "release_hold",
+      "description": "Release a previously-created hold so other agents can claim the slot."
+    },
+    {
+      "name": "commit_booking",
+      "description": "Finalize a booking. Atomic compare-and-swap at the slot level \u2014 exactly one agent succeeds per slot."
+    },
+    {
+      "name": "cancel_booking",
+      "description": "Cancel a previously-committed booking owned by the calling agent."
+    }
+  ],
+  "user_config": {
+    "api_key": {
+      "type": "string",
+      "title": "AgentDraft API key",
+      "description": "An avs_live_\u2026 key issued from your AgentDraft dashboard at app.agentdraft.io. Required.",
+      "sensitive": true,
+      "required": true
+    },
+    "base_url": {
+      "type": "string",
+      "title": "Base URL (advanced)",
+      "description": "Override the AgentDraft API base. Leave blank to use the production endpoint (https://api.agentdraft.io). Set this only for local development against a dev backend.",
+      "sensitive": false,
+      "required": false,
+      "default": "https://api.agentdraft.io"
+    }
+  },
+  "compatibility": {
+    "claude_desktop": ">=0.10",
+    "platforms": [
+      "darwin",
+      "win32",
+      "linux"
+    ],
+    "runtimes": {
+      "python": ">=3.10"
+    }
+  }
+}

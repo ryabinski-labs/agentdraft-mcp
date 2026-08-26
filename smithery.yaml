@@ -1,0 +1,29 @@
+# Smithery deployment descriptor (https://smithery.ai/docs).
+# The server is a stdio process; Smithery starts it with the config below.
+startCommand:
+  type: stdio
+  configSchema:
+    type: object
+    required:
+      - apiKey
+    properties:
+      apiKey:
+        type: string
+        title: AgentDraft API key
+        description: >-
+          An avs_live_… key issued at https://app.agentdraft.io. Sign-up shows
+          it once, before any calendar connection is required.
+      baseUrl:
+        type: string
+        title: API base URL
+        description: Override the API base. Leave unset for production.
+        default: https://api.agentdraft.io
+  commandFunction: |-
+    (config) => ({
+      command: "agentdraft-mcp",
+      args: [],
+      env: {
+        AGENTDRAFT_API_KEY: config.apiKey,
+        AGENTDRAFT_BASE_URL: config.baseUrl || "https://api.agentdraft.io"
+      }
+    })

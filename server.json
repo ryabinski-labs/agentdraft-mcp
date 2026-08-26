@@ -1,0 +1,38 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-07-09/server.schema.json",
+  "name": "io.github.ryabinski-labs/agentdraft-mcp",
+  "description": "Per-agent email inbox, conflict-free calendar booking, and a tamper-evident audit trail — one API an AI agent can call without colliding with other agents on the same calendar.",
+  "status": "active",
+  "repository": {
+    "url": "https://github.com/ryabinski-labs/agentdraft-mcp",
+    "source": "github"
+  },
+  "version": "0.1.1",
+  "websiteUrl": "https://agentdraft.io",
+  "packages": [
+    {
+      "registryType": "pypi",
+      "registryBaseUrl": "https://pypi.org",
+      "identifier": "agentdraft-mcp",
+      "version": "0.1.1",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "AGENTDRAFT_API_KEY",
+          "description": "An avs_live_… key issued at https://app.agentdraft.io. Shown once at sign-up.",
+          "isRequired": true,
+          "isSecret": true
+        },
+        {
+          "name": "AGENTDRAFT_BASE_URL",
+          "description": "Override the API base. Leave unset to use https://api.agentdraft.io.",
+          "isRequired": false,
+          "isSecret": false,
+          "default": "https://api.agentdraft.io"
+        }
+      ]
+    }
+  ]
+}
