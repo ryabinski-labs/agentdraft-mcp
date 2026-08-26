@@ -1,0 +1,2 @@
+[console_scripts]
+agentdraft-mcp = agentdraft_mcp.__main__:main

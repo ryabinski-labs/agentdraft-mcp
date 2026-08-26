@@ -72,7 +72,44 @@ echo "[mcpb] zipping bundle…"
 # *merge* into the existing archive, silently keeping deleted files
 # (e.g. yesterday's __pycache__ noise) around in this release's .mcpb.
 rm -f "$OUTPUT"
-( cd "$BUILD_DIR" && zip -r -q -X "$OUTPUT" . )
+# `zip` is not part of a minimal Linux image and is absent from our
+# self-hosted runners, so the archive is written with Python's zipfile
+# instead — the interpreter is already a hard requirement of this script.
+# Entries are sorted and their timestamps pinned so two builds of the
+# same tree produce byte-identical bundles.
+PYTHON_CMD="${PYTHON:-python3}"
+if ! command -v "$PYTHON_CMD" >/dev/null 2>&1; then
+  echo "error: python3 not on PATH; set PYTHON=/path/to/python3" >&2
+  exit 1
+fi
+BUILD_DIR="$BUILD_DIR" OUTPUT="$OUTPUT" "$PYTHON_CMD" - <<'PYZIP'
+import os
+import zipfile
+
+build_dir = os.environ["BUILD_DIR"]
+output = os.environ["OUTPUT"]
+# 1980-01-01, the zero of the DOS timestamp zip stores.
+epoch = (1980, 1, 1, 0, 0, 0)
+
+paths = []
+for dirpath, dirnames, filenames in os.walk(build_dir):
+    dirnames.sort()
+    for name in sorted(filenames):
+        full = os.path.join(dirpath, name)
+        paths.append((os.path.relpath(full, build_dir), full))
+paths.sort()
+
+with zipfile.ZipFile(output, "w", zipfile.ZIP_DEFLATED) as bundle:
+    for arcname, full in paths:
+        info = zipfile.ZipInfo(arcname, date_time=epoch)
+        info.compress_type = zipfile.ZIP_DEFLATED
+        # Preserve only the executable bit; zipfile otherwise records the
+        # build host's umask, which differs between a laptop and a runner.
+        mode = 0o755 if os.access(full, os.X_OK) else 0o644
+        info.external_attr = mode << 16
+        with open(full, "rb") as fh:
+            bundle.writestr(info, fh.read())
+PYZIP
 
 SIZE="$(du -h "$OUTPUT" | awk '{print $1}')"
 echo "[mcpb] wrote $OUTPUT ($SIZE)"

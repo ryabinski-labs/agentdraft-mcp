@@ -1,0 +1,12 @@
+LICENSE
+README.md
+pyproject.toml
+agentdraft_mcp/__init__.py
+agentdraft_mcp/__main__.py
+agentdraft_mcp/server.py
+agentdraft_mcp.egg-info/PKG-INFO
+agentdraft_mcp.egg-info/SOURCES.txt
+agentdraft_mcp.egg-info/dependency_links.txt
+agentdraft_mcp.egg-info/entry_points.txt
+agentdraft_mcp.egg-info/requires.txt
+agentdraft_mcp.egg-info/top_level.txt
