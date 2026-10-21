@@ -14,6 +14,31 @@ a thin wrapper around the [`agentdraft`](https://pypi.org/project/agentdraft/)
 Python SDK — same auth, same errors, same semantics as the REST API
 and the language SDKs.
 
+## Tools
+
+Nine tools, grouped by what they coordinate:
+
+- **Scheduling** — `whoami`, `get_availability`, `create_hold`, `release_hold`,
+  `commit_booking`, `cancel_booking`.
+- **Human approval** — `request_approval`, `get_approval`, `wait_for_approval`.
+  Open a gate before a consequential action and resume only when a person
+  decides. The wait is clamped to 120 seconds; a timeout returns
+  `status: "pending"`, never a false approval.
+
+```python
+approval = await tools.request_approval(
+    action_type="deploy.production",
+    summary="Ship v0.2.0 to production",
+    evidence={"commit": "a1b2c3d", "migrations": 2},
+)
+result = await tools.wait_for_approval(approval["approval_id"], timeout_seconds=60)
+if result["status"] != "approved":
+    raise SystemExit(f"stood down: {result['status']}")
+```
+
+An interactive config generator for every supported host lives at
+<https://agentdraft.io/for-agents/mcp>.
+
 ## Install
 
 ```bash

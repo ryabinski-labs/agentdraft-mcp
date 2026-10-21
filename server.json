@@ -1,20 +1,20 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-09-29/server.schema.json",
   "name": "io.github.ryabinski-labs/agentdraft-mcp",
-  "description": "Per-agent inbox, conflict-free calendar booking, and an audit trail for AI agents.",
+  "description": "Per-agent inbox, race-free calendar, human approvals, and an audit trail for AI agents.",
   "status": "active",
   "repository": {
     "url": "https://github.com/ryabinski-labs/agentdraft-mcp",
     "source": "github"
   },
-  "version": "0.1.1",
+  "version": "0.2.0",
   "websiteUrl": "https://agentdraft.io",
   "packages": [
     {
       "registryType": "pypi",
       "registryBaseUrl": "https://pypi.org",
       "identifier": "agentdraft-mcp",
-      "version": "0.1.1",
+      "version": "0.2.0",
       "transport": {
         "type": "stdio"
       },

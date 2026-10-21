@@ -1,6 +1,6 @@
 [project]
 name = "agentdraft-mcp"
-version = "0.1.1"
+version = "0.2.0"
 description = "MCP server for AgentDraft — expose inbox, conflict-free calendar, and audit tools to MCP-aware AI clients"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -18,7 +18,9 @@ classifiers = [
     "Topic :: Office/Business :: Scheduling",
 ]
 dependencies = [
-    "mcp>=1.0",
+    # mcp 2.x renamed FastMCP to MCPServer and changed the server API; this
+    # package (and agentdraft-mcp 0.2.0) targets the 1.x FastMCP surface.
+    "mcp>=1.0,<2",
     "agentdraft>=0.1.0",
 ]
 

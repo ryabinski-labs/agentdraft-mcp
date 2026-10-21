@@ -23,7 +23,7 @@ from mcp.server.fastmcp import FastMCP
 
 from agentdraft import Client, Conflict
 from agentdraft import __version__ as _agentdraft_version
-from agentdraft.errors import AgentDraftError, AuthError, RateLimited, RuleViolation
+from agentdraft.errors import AgentDraftError, ApprovalTimeout, AuthError, RateLimited, RuleViolation
 
 from . import __version__ as _mcp_version
 
@@ -100,7 +100,9 @@ def build_server() -> FastMCP:
             "create_hold to reserve it tentatively, commit_booking to "
             "make it final. A losing booking returns a structured "
             "outranked payload — read winning_agent_id and propose an "
-            "alternate slot rather than retrying."
+            "alternate slot rather than retrying. Before a consequential "
+            "action, call request_approval, then wait_for_approval; proceed "
+            "only when the status is approved."
         ),
     )
 
@@ -263,6 +265,91 @@ def build_server() -> FastMCP:
                 c.bookings.cancel(booking_id)
                 return {"cancelled": True, "booking_id": booking_id}
         except (AuthError, RateLimited, AgentDraftError) as e:
+            return _error_payload(e)
+
+    # ── human approval tools (0.2.0) ─────────────────────────────────
+    #
+    # The gate exists so an agent can pause before a consequential action
+    # without holding a request thread open. `request_approval` returns an
+    # id immediately; `wait_for_approval` is a bounded convenience for hosts
+    # that can suspend one tool call. Every wait is clamped: an MCP host
+    # normally kills a tool call somewhere between 60 and 180 seconds, and a
+    # timeout must surface as "pending", never as a false approval.
+
+    @mcp.tool()
+    def request_approval(
+        action_type: str,
+        summary: str,
+        evidence: Optional[dict] = None,
+        ttl_seconds: Optional[int] = None,
+        idempotency_key: Optional[str] = None,
+    ) -> dict[str, Any]:
+        """Open a human sign-off request and return immediately.
+
+        `action_type` is a namespaced lowercase string such as
+        `deploy.production`, `mailbox.send_external`, or `billing.refund`.
+        `summary` is the one line a reviewer reads first; `evidence` is the
+        structured context they need to decide (target, amount, exact draft).
+        Returns `{approval_id, status, expires_at}`. Requires the
+        `approvals:request` scope.
+        """
+        try:
+            with _client() as c:
+                return c.approvals.request(
+                    action_type=action_type,
+                    summary=summary,
+                    evidence=evidence,
+                    ttl_seconds=ttl_seconds,
+                    idempotency_key=idempotency_key,
+                )
+        except (AuthError, RateLimited, RuleViolation, AgentDraftError) as e:
+            return _error_payload(e)
+
+    @mcp.tool()
+    def get_approval(approval_id: str) -> dict[str, Any]:
+        """Read the current state of one approval request: `pending`,
+        `approved`, `denied`, or `expired`, plus the reviewer's note once
+        resolved. Safe to poll; it never blocks."""
+        try:
+            with _client() as c:
+                return c.approvals.get(approval_id)
+        except (AuthError, RateLimited, AgentDraftError) as e:
+            return _error_payload(e)
+
+    @mcp.tool()
+    def wait_for_approval(
+        approval_id: str,
+        timeout_seconds: float = 60.0,
+        poll_interval_seconds: float = 5.0,
+    ) -> dict[str, Any]:
+        """Wait for a human decision, bounded to 120 seconds.
+
+        The timeout is clamped to `[1, 120]` and the poll interval to
+        `[1, 30]` so no MCP host is left hanging. If the request is still
+        pending when the timeout lapses, the result carries
+        `status: "pending"` and `timed_out: true`; call `get_approval` or
+        `wait_for_approval` again to keep waiting. Proceed only when the
+        status is `approved` — denied, expired, and pending all mean stop.
+        """
+        timeout = min(max(float(timeout_seconds), 1.0), 120.0)
+        poll = min(max(float(poll_interval_seconds), 1.0), 30.0)
+        try:
+            with _client() as c:
+                return c.approvals.wait(
+                    approval_id, timeout=timeout, poll_interval=poll
+                )
+        except ApprovalTimeout as e:
+            return {
+                "approval_id": approval_id,
+                "status": "pending",
+                "timed_out": True,
+                "waited_seconds": round(float(getattr(e, "waited_seconds", timeout)), 1),
+                "message": (
+                    "Approval is still pending human review. Call get_approval "
+                    "or wait_for_approval again with the same approval_id."
+                ),
+            }
+        except (AuthError, RateLimited, RuleViolation, AgentDraftError) as e:
             return _error_payload(e)
 
     return mcp

@@ -2,9 +2,9 @@
   "manifest_version": "0.3",
   "name": "agentdraft",
   "display_name": "AgentDraft \u2014 multi-agent calendar coordination",
-  "version": "0.1.1",
-  "description": "Race-free booking against a shared calendar for AI agents. Adds the AgentDraft coordination layer to Claude Desktop so this MCP host won't double-book the same slot when other agents are writing to the same calendar.",
-  "long_description": "AgentDraft is the coordination layer for AI scheduling agents. When two or more agents (a sales bot, a recruiter assistant, a personal scheduling agent) all write to the same calendar, AgentDraft is the API that picks exactly one winner per slot deterministically \u2014 with a tamper-evident audit log for every commit and a priority ranking so the most important agent always wins.\n\nThis extension exposes AgentDraft as MCP tools: get_availability, create_hold, release_hold, commit_booking, cancel_booking, and whoami. A losing booking attempt returns a structured `outranked` payload (winning_agent_id, winning_agent_priority) so the agent can branch on it and propose an alternate slot rather than retrying.\n\nGet an `avs_live_\u2026` API key at https://app.agentdraft.io after sign-up.",
+  "version": "0.2.0",
+  "description": "Race-free booking and a human approval gate for AI agents in Claude Desktop.",
+  "long_description": "AgentDraft is the coordination layer for AI scheduling agents. When two or more agents (a sales bot, a recruiter assistant, a personal scheduling agent) all write to the same calendar, AgentDraft is the API that picks exactly one winner per slot deterministically \u2014 with a tamper-evident audit log for every commit and a priority ranking so the most important agent always wins.\n\nThis extension exposes AgentDraft as nine MCP tools: get_availability, create_hold, release_hold, commit_booking, cancel_booking, whoami, request_approval, get_approval, and wait_for_approval. The approval gate pauses an agent before a consequential action and resumes it only when a person decides; a bounded wait returns status pending rather than a false approval. A losing booking attempt returns a structured `outranked` payload (winning_agent_id, winning_agent_priority) so the agent can branch on it and propose an alternate slot rather than retrying.\n\nGet an `avs_live_\u2026` API key at https://app.agentdraft.io after sign-up.",
   "author": {
     "name": "AgentDraft Labs",
     "email": "hello@agentdraft.io",
@@ -66,6 +66,18 @@
     {
       "name": "cancel_booking",
       "description": "Cancel a previously-committed booking owned by the calling agent."
+    },
+    {
+      "name": "request_approval",
+      "description": "Open a human sign-off request for a consequential action and return immediately with an approval id."
+    },
+    {
+      "name": "get_approval",
+      "description": "Read the current state of an approval request: pending, approved, denied, or expired."
+    },
+    {
+      "name": "wait_for_approval",
+      "description": "Wait for a human decision, bounded to 120 seconds. A timeout returns status pending rather than a false approval."
     }
   ],
   "user_config": {

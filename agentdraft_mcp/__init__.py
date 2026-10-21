@@ -15,7 +15,7 @@ Quickstart::
 # Define __version__ BEFORE any submodule import so submodules can read
 # it via `from . import __version__` without tripping a partial-import
 # error (the submodules use the version to compose their User-Agent).
-__version__ = "0.1.1"
+__version__ = "0.2.0"
 
 from .server import build_server
 

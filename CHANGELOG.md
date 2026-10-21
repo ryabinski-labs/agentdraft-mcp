@@ -3,6 +3,23 @@
 All notable changes documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.2.0] — human approval tools
+
+### Added
+
+- `request_approval`, `get_approval`, and `wait_for_approval` MCP tools, backed
+  by the same `agentdraft` SDK approval primitive as the REST API and the
+  dashboard. The wait is clamped to 120 seconds; a timeout returns
+  `status: "pending"` instead of a false approval.
+- A 256×256 Desktop Extension icon (`dxt/icon.png`) and a nine-tool manifest,
+  so the `.mcpb` bundle lists the approval tools alongside scheduling.
+
+### Fixed
+
+- Pinned `mcp>=1.0,<2`. `mcp` 2.x renamed `FastMCP` to `MCPServer` and changed
+  the server API; an unpinned install of 0.1.x resolved 2.x and failed at
+  import with `No module named 'mcp.server.fastmcp'`.
+
 ## [0.1.1] — metadata points at a real repository
 
 ### Fixed

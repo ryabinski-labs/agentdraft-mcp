@@ -1,2 +1,0 @@
-mcp>=1.0
-agentdraft>=0.1.0
